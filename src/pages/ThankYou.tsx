@@ -4,12 +4,19 @@ import SEO from '../components/SEO'
 const SPEAKER_KIT_URL =
   'https://cdn.prod.website-files.com/6984d5c05a53301643b3fb8d/69feafd697406c80a61ecd2a_V2%20Speaker%20Kit%20(2).pdf'
 
-const KVMarkLarge = () => (
-  <svg viewBox="0 0 38 38" fill="none" style={{ width: 64, height: 64 }}>
-    <path d="M4 6h8l7 13L13 32H4l7-13L4 6z" fill="#d4f179" />
-    <path d="M19 6l7 13-7 13h7l11-13L26 6h-7z" fill="#d4f179" />
-  </svg>
-)
+function KVMarkLarge() {
+  return (
+    <img
+      src="/logo.svg"
+      alt="Kayvon Kay"
+      style={{ height: 64, width: 'auto', display: 'block' }}
+      onError={e => {
+        const img = e.currentTarget
+        if (!img.src.endsWith('logo.png')) img.src = '/logo.png'
+      }}
+    />
+  )
+}
 
 export default function ThankYou() {
   return (

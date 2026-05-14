@@ -1,167 +1,106 @@
+import { useEffect, useState } from 'react'
 import { useParams, Link, Navigate } from 'react-router-dom'
 import SEO from '../components/SEO'
 import CardGlow from '../components/CardGlow'
-import { getArticle, getRelatedArticles, ArticleSection } from '../data/articles'
+import BlogBody from '../components/BlogBody'
 
-function CtaMid() {
-  return (
-    <div
-      style={{
-        background: '#d4f179',
-        padding: '40px 44px',
-        margin: '48px 0',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 24,
-        flexWrap: 'wrap',
-      }}
-    >
-      <p style={{ fontSize: 18, fontWeight: 800, color: '#000042', letterSpacing: '-0.3px' }}>
-        Ready to architect your wealth?
-      </p>
-      <Link
-        to="/contact"
-        style={{
-          background: '#000042',
-          color: '#d4f179',
-          fontWeight: 800,
-          fontSize: 12,
-          letterSpacing: '1px',
-          padding: '14px 24px',
-          textDecoration: 'none',
-          textTransform: 'uppercase',
-          flexShrink: 0,
-        }}
-      >
-        Book a Private Analysis →
-      </Link>
-    </div>
-  )
+interface Post {
+  slug: string
+  title: string
+  metaTitle?: string
+  metaDescription?: string
+  category?: string
+  pillarCluster?: string
+  isPillar?: number
+  pillarSlug?: string
+  body: string
+  publishedAt?: string
+  wordCount?: number
 }
 
-function renderSection(section: ArticleSection, index: number) {
-  switch (section.type) {
-    case 'h2':
-      return (
-        <h2
-          key={index}
-          style={{
-            fontSize: 'clamp(22px, 2.5vw, 30px)',
-            fontWeight: 900,
-            letterSpacing: '-1px',
-            lineHeight: 1.15,
-            color: '#fff',
-            marginTop: 56,
-            marginBottom: 20,
-          }}
-        >
-          {section.text}
-        </h2>
-      )
-    case 'h3':
-      return (
-        <h3
-          key={index}
-          style={{
-            fontSize: 20,
-            fontWeight: 800,
-            letterSpacing: '-0.5px',
-            color: '#d4f179',
-            marginTop: 36,
-            marginBottom: 12,
-          }}
-        >
-          {section.text}
-        </h3>
-      )
-    case 'p':
-      return (
-        <p
-          key={index}
-          style={{
-            fontSize: 17,
-            fontWeight: 400,
-            lineHeight: 1.85,
-            color: 'rgba(255,255,255,0.65)',
-            marginBottom: 20,
-          }}
-        >
-          {section.text}
-        </p>
-      )
-    case 'ul':
-      return (
-        <ul
-          key={index}
-          style={{
-            listStyle: 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            marginBottom: 24,
-            paddingLeft: 0,
-          }}
-        >
-          {section.items?.map((item, i) => (
-            <li
-              key={i}
-              style={{
-                fontSize: 17,
-                fontWeight: 400,
-                lineHeight: 1.75,
-                color: 'rgba(255,255,255,0.65)',
-                paddingLeft: 20,
-                position: 'relative',
-              }}
-            >
-              <span style={{ position: 'absolute', left: 0, color: '#d4f179', fontWeight: 900 }}>·</span>
-              {item}
-            </li>
-          ))}
-        </ul>
-      )
-    case 'cta-mid':
-      return <CtaMid key={index} />
-    default:
-      return null
-  }
+interface RelatedPost {
+  slug: string
+  title: string
+  category?: string
+  isPillar?: number
+  publishedAt?: string
 }
+
+function formatDate(d: string | undefined) {
+  if (!d) return ''
+  try { return new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) }
+  catch { return d }
+}
+
+function readTime(wc: number | undefined) {
+  return wc ? `${Math.max(5, Math.round(wc / 200))} min` : '8 min'
+}
+
+const AUTHOR_BIO = `Kayvon Kay is the Revenue Architect — helping 7 to 9 figure operators turn revenue into compounding wealth. He is the founder of <a href="https://salesfit.ai" style="color:#d4f179">SalesFit.ai</a>, the Sales Team Intelligence Platform, and <a href="https://thesalesconnection.com" style="color:#d4f179">The Sales Connection</a>, a high-performance sales recruitment firm. He has built 101 sales teams and generated $375M+ in client revenue across two decades.`
 
 export default function ArticlePage() {
   const { slug } = useParams<{ slug: string }>()
-  const article = slug ? getArticle(slug) : undefined
+  const [post, setPost] = useState<Post | null>(null)
+  const [related, setRelated] = useState<RelatedPost[]>([])
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
 
-  if (!article) return <Navigate to="/articles" replace />
+  useEffect(() => {
+    if (!slug) return
+    setLoading(true)
+    setNotFound(false)
 
-  const related = getRelatedArticles(article.slug)
+    fetch(`/api/posts/${slug}`)
+      .then(r => {
+        if (!r.ok) throw new Error('not found')
+        return r.json()
+      })
+      .then((data: Post) => {
+        setPost(data)
+        setLoading(false)
+        // Fetch related posts from same cluster
+        if (data.pillarCluster) {
+          fetch(`/api/posts/cluster/${data.pillarCluster}`)
+            .then(r => r.json())
+            .then((clusterPosts: RelatedPost[]) => {
+              setRelated(clusterPosts.filter(p => p.slug !== slug).slice(0, 3))
+            })
+            .catch(() => {})
+        }
+      })
+      .catch(() => {
+        setNotFound(true)
+        setLoading(false)
+      })
+  }, [slug])
+
+  if (loading) {
+    return (
+      <section style={{ background: '#000042', minHeight: '100vh', paddingTop: 148, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: 'rgba(255,255,255,0.3)' }}>Loading...</p>
+      </section>
+    )
+  }
+
+  if (notFound || !post) return <Navigate to="/articles" replace />
 
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'Article',
-    headline: article.title,
-    description: article.metaDescription,
-    datePublished: article.dateISO,
-    author: {
-      '@type': 'Person',
-      name: 'Kayvon Kay',
-      url: 'https://kayvon.com',
-      jobTitle: 'Revenue Architect',
-    },
-    publisher: {
-      '@type': 'Person',
-      name: 'Kayvon Kay',
-      url: 'https://kayvon.com',
-    },
-    url: `https://kayvon.com/articles/${article.slug}`,
+    headline: post.title,
+    description: post.metaDescription || '',
+    datePublished: post.publishedAt,
+    author: { '@type': 'Person', name: 'Kayvon Kay', url: 'https://kayvon.com', jobTitle: 'Revenue Architect' },
+    publisher: { '@type': 'Person', name: 'Kayvon Kay', url: 'https://kayvon.com' },
+    url: `https://kayvon.com/articles/${post.slug}`,
   }
 
   return (
     <>
       <SEO
-        title={`${article.title} | Kayvon Kay`}
-        description={article.metaDescription}
-        canonical={`https://kayvon.com/articles/${article.slug}`}
+        title={post.metaTitle || `${post.title} | Kayvon Kay`}
+        description={post.metaDescription || ''}
+        canonical={`https://kayvon.com/articles/${post.slug}`}
         ogType="article"
         jsonLD={articleSchema}
       />
@@ -171,45 +110,38 @@ export default function ArticlePage() {
         style={{
           background: '#000042',
           paddingTop: 148,
-          paddingBottom: 64,
+          paddingBottom: 56,
           paddingLeft: 40,
           paddingRight: 40,
           borderBottom: '1px solid rgba(212,241,121,0.1)',
         }}
       >
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
-            <Link
-              to="/articles"
-              style={{
-                fontSize: 12,
-                fontWeight: 500,
-                color: 'rgba(255,255,255,0.35)',
-                textDecoration: 'none',
-                letterSpacing: '0.5px',
-              }}
-            >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28, flexWrap: 'wrap' }}>
+            <Link to="/articles" style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.3)', textDecoration: 'none', letterSpacing: '0.5px' }}>
               ← Articles
             </Link>
-            <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: 12 }}>·</span>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                color: '#d4f179',
-                background: 'rgba(212,241,121,0.1)',
-                padding: '4px 10px',
-              }}
-            >
-              {article.category}
-            </span>
+            {post.category && (
+              <>
+                <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: 12 }}>·</span>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase',
+                  color: '#d4f179', background: 'rgba(212,241,121,0.1)', padding: '4px 10px',
+                }}>
+                  {post.category}
+                </span>
+              </>
+            )}
+            {post.isPillar ? (
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: 'rgba(212,241,121,0.5)' }}>
+                Complete Guide
+              </span>
+            ) : null}
           </div>
 
           <h1
             style={{
-              fontSize: 'clamp(28px, 3.5vw, 48px)',
+              fontSize: 'clamp(26px, 3.5vw, 46px)',
               fontWeight: 900,
               letterSpacing: '-2px',
               lineHeight: 1.1,
@@ -217,65 +149,78 @@ export default function ArticlePage() {
               marginBottom: 28,
             }}
           >
-            {article.title}
+            {post.title}
           </h1>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
             <div>
               <p style={{ fontSize: 13, fontWeight: 700, color: '#fff', marginBottom: 2 }}>Kayvon Kay</p>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>The Revenue Architect · kayvon.com</p>
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>Revenue Architect · kayvon.com</p>
             </div>
+            {post.publishedAt && (
+              <>
+                <span style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
+                <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>{formatDate(post.publishedAt)}</span>
+              </>
+            )}
             <span style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>{article.date}</span>
-            <span style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
-            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>{article.readTime} read</span>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>{readTime(post.wordCount)} read</span>
           </div>
         </div>
       </section>
 
       {/* ARTICLE BODY */}
-      <section style={{ background: '#000042', padding: '64px 40px 100px' }}>
+      <section style={{ background: '#000042', padding: '56px 40px 80px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto' }}>
-          {article.content.map((section, i) => renderSection(section, i))}
+          <BlogBody html={post.body} />
+
+          {/* AUTHOR BIO */}
+          <div
+            style={{
+              marginTop: 72,
+              borderTop: '1px solid rgba(212,241,121,0.1)',
+              paddingTop: 40,
+            }}
+          >
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '3px', textTransform: 'uppercase', color: 'rgba(255,255,255,0.25)', marginBottom: 16 }}>
+              About the Author
+            </p>
+            <p
+              style={{ fontSize: 15, lineHeight: 1.75, color: 'rgba(255,255,255,0.55)' }}
+              dangerouslySetInnerHTML={{ __html: AUTHOR_BIO }}
+            />
+          </div>
 
           {/* BOTTOM CTA */}
           <div
             style={{
-              marginTop: 80,
-              borderTop: '1px solid rgba(212,241,121,0.1)',
-              paddingTop: 64,
+              marginTop: 64,
+              background: '#d4f179',
+              padding: '40px 44px',
               textAlign: 'center',
             }}
           >
-            <h2
-              style={{
-                fontSize: 'clamp(24px, 3vw, 36px)',
-                fontWeight: 900,
-                letterSpacing: '-1.5px',
-                color: '#fff',
-                marginBottom: 16,
-              }}
-            >
-              Ready to Architect Your Wealth?
+            <h2 style={{ fontSize: 'clamp(20px, 2.5vw, 30px)', fontWeight: 900, letterSpacing: '-1px', color: '#000042', marginBottom: 16 }}>
+              Book a Private Wealth Architecture Analysis
             </h2>
-            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, marginBottom: 32, maxWidth: 480, margin: '0 auto 32px' }}>
-              The framework is in the article. The implementation is in a private engagement.
+            <p style={{ fontSize: 15, color: 'rgba(0,0,66,0.6)', marginBottom: 28 }}>
+              The framework is in the article. The implementation is a private engagement.
             </p>
             <Link
               to="/contact"
               style={{
-                background: '#d4f179',
-                color: '#000042',
+                background: '#000042',
+                color: '#d4f179',
                 fontWeight: 800,
-                fontSize: 13,
+                fontSize: 12,
                 letterSpacing: '1px',
-                padding: '16px 32px',
-                textDecoration: 'none',
                 textTransform: 'uppercase',
+                padding: '14px 28px',
+                textDecoration: 'none',
                 display: 'inline-block',
               }}
             >
-              Book a Private Analysis →
+              kayvon.com/contact →
             </Link>
           </div>
         </div>
@@ -283,56 +228,24 @@ export default function ArticlePage() {
 
       {/* RELATED ARTICLES */}
       {related.length > 0 && (
-        <section
-          style={{
-            background: '#000042',
-            borderTop: '1px solid rgba(212,241,121,0.1)',
-            padding: '80px 40px',
-          }}
-        >
+        <section style={{ background: '#000042', borderTop: '1px solid rgba(212,241,121,0.1)', padding: '72px 40px' }}>
           <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-            <span className="eyebrow">More Articles</span>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }} className="related-grid">
+            <span className="eyebrow">Related Articles</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }} className="related-grid">
               {related.map(a => (
                 <Link key={a.slug} to={`/articles/${a.slug}`} style={{ textDecoration: 'none' }}>
                   <CardGlow
                     hoverBorder
-                    style={{
-                      border: '1px solid rgba(212,241,121,0.1)',
-                      padding: '32px 28px',
-                      cursor: 'pointer',
-                    }}
+                    style={{ border: '1px solid rgba(212,241,121,0.1)', padding: '28px 24px', cursor: 'pointer', height: '100%' }}
                   >
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 700,
-                        letterSpacing: '2px',
-                        textTransform: 'uppercase',
-                        color: '#d4f179',
-                        background: 'rgba(212,241,121,0.1)',
-                        padding: '4px 10px',
-                        display: 'inline-block',
-                        marginBottom: 16,
-                      }}
-                    >
-                      {a.category}
-                    </span>
-                    <h3
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 800,
-                        letterSpacing: '-0.3px',
-                        lineHeight: 1.3,
-                        color: '#fff',
-                        marginBottom: 12,
-                      }}
-                    >
+                    {a.category && (
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#d4f179', background: 'rgba(212,241,121,0.1)', padding: '4px 10px', display: 'inline-block', marginBottom: 14 }}>
+                        {a.category}
+                      </span>
+                    )}
+                    <h3 style={{ fontSize: 16, fontWeight: 800, letterSpacing: '-0.3px', lineHeight: 1.3, color: '#fff', marginBottom: 0 }}>
                       {a.title}
                     </h3>
-                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>
-                      {a.readTime} read · {a.date}
-                    </p>
                   </CardGlow>
                 </Link>
               ))}
@@ -342,9 +255,8 @@ export default function ArticlePage() {
       )}
 
       <style>{`
-        @media (max-width: 640px) {
-          .related-grid { grid-template-columns: 1fr !important; }
-        }
+        @media (max-width: 768px) { .related-grid { grid-template-columns: 1fr 1fr !important; } }
+        @media (max-width: 480px) { .related-grid { grid-template-columns: 1fr !important; } }
       `}</style>
     </>
   )

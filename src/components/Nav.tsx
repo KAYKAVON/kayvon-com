@@ -1,12 +1,56 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
-const KVMark = () => (
-  <svg viewBox="0 0 38 38" fill="none" style={{ width: 28, height: 28 }}>
-    <path d="M4 6h8l7 13L13 32H4l7-13L4 6z" fill="#d4f179" />
-    <path d="M19 6l7 13-7 13h7l11-13L26 6h-7z" fill="#d4f179" />
-  </svg>
-)
+// Logo loads from /public/logo.svg or /public/logo.png.
+// Drop the real file into /public/ and update the src below.
+// See README.md for instructions.
+function SiteLogo() {
+  const [src, setSrc] = useState('/logo.svg')
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => { setSrc('/logo.svg'); setLoaded(true) }
+    img.onerror = () => {
+      const img2 = new Image()
+      img2.onload = () => { setSrc('/logo.png'); setLoaded(true) }
+      img2.onerror = () => setLoaded(false)
+      img2.src = '/logo.png'
+    }
+    img.src = '/logo.svg'
+  }, [])
+
+  if (!loaded) {
+    return (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: 32,
+          padding: '0 10px',
+          border: '1px dashed rgba(212,241,121,0.4)',
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '1.5px',
+          textTransform: 'uppercase',
+          color: 'rgba(212,241,121,0.5)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        LOGO FILE GOES HERE
+      </span>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt="Kayvon Kay"
+      style={{ height: 32, width: 'auto', display: 'block' }}
+    />
+  )
+}
 
 const links = [
   { to: '/', label: 'Home' },
@@ -67,20 +111,8 @@ export default function Nav() {
             justifyContent: 'space-between',
           }}
         >
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-            <KVMark />
-            <span
-              style={{
-                fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-                fontWeight: 800,
-                fontSize: 13,
-                letterSpacing: '3px',
-                color: '#d4f179',
-                textTransform: 'uppercase',
-              }}
-            >
-              KAYVON KAY
-            </span>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+            <SiteLogo />
           </Link>
 
           <div

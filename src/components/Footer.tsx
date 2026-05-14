@@ -1,11 +1,19 @@
 import { Link } from 'react-router-dom'
 
-const KVMark = () => (
-  <svg viewBox="0 0 38 38" fill="none" style={{ width: 32, height: 32 }}>
-    <path d="M4 6h8l7 13L13 32H4l7-13L4 6z" fill="#d4f179" />
-    <path d="M19 6l7 13-7 13h7l11-13L26 6h-7z" fill="#d4f179" />
-  </svg>
-)
+// Reuses the same logo file as the nav — /public/logo.svg or /public/logo.png
+function FooterLogo() {
+  return (
+    <img
+      src="/logo.svg"
+      alt="Kayvon Kay"
+      style={{ height: 36, width: 'auto', display: 'block' }}
+      onError={e => {
+        const img = e.currentTarget
+        if (!img.src.endsWith('logo.png')) img.src = '/logo.png'
+      }}
+    />
+  )
+}
 
 export default function Footer() {
   return (
@@ -32,19 +40,8 @@ export default function Footer() {
           className="footer-grid"
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <KVMark />
-              <span
-                style={{
-                  fontWeight: 800,
-                  fontSize: 13,
-                  letterSpacing: '3px',
-                  color: '#d4f179',
-                  textTransform: 'uppercase',
-                }}
-              >
-                KAYVON KAY
-              </span>
+            <div style={{ marginBottom: 12 }}>
+              <FooterLogo />
             </div>
             <p
               style={{
