@@ -56,6 +56,7 @@ railway up --detach
 |---|---|---|
 | `PORT` | No | Defaults to 3000 |
 | `DATABASE_URL` | Yes (for blog) | Railway MySQL connection string |
+| `CLOUDINARY_URL` | Yes (for hero images) | `cloudinary://api_key:api_secret@cloud_name` |
 
 ## Blog / Articles
 
@@ -67,3 +68,36 @@ DATABASE_URL=<your-connection-string> node server/seed.js
 ```
 
 The site degrades gracefully when `DATABASE_URL` is not set — the articles page shows the three static fallback posts.
+
+## Blog Hero Images
+
+Every blog post gets an auto-generated 1200×630 branded hero card:
+- `#000042` background with translucent `K` watermark
+- Post title in white Helvetica bold
+- `KV` mark + `KAYVON KAY` in `#d4f179` bottom-right
+
+**When a post is created via `POST /api/posts`**, the hero image is generated and uploaded to Cloudinary automatically (async — the URL is stored in `blog_posts.heroImageUrl`).
+
+**To batch-generate images** for posts that are missing one:
+
+```bash
+DATABASE_URL=<...> CLOUDINARY_URL=<...> node server/hero-regen.js
+```
+
+**To force-regenerate all posts:**
+
+```bash
+DATABASE_URL=<...> CLOUDINARY_URL=<...> node server/hero-regen.js --all
+```
+
+**To regenerate a single post:**
+
+```bash
+DATABASE_URL=<...> CLOUDINARY_URL=<...> node server/hero-regen.js --slug=your-post-slug
+```
+
+**Via API** (triggers live generation, returns the URL):
+
+```bash
+curl -X POST https://kayvon.com/api/posts/<slug>/hero
+```

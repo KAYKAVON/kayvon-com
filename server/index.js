@@ -2,6 +2,7 @@ const express = require('express')
 const path = require('path')
 const fs = require('fs')
 const { query } = require('./db')
+const { generateHero } = require('./generate-hero')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -157,6 +158,47 @@ app.get('/api/categories', async (req, res) => {
   const rows = await query('SELECT DISTINCT category FROM blog_posts ORDER BY category')
   if (rows) return res.json(rows.map(r => r.category).filter(Boolean))
   res.json(['Capital Flow', 'Revenue Leverage', 'Fractional CRO', 'Revenue Architecture', 'Sales Teams', 'Business Wealth', 'Sales Speaker'])
+})
+
+// ── API: Create post (with auto hero generation) ───────────────────────────────
+
+app.post('/api/posts', async (req, res) => {
+  const { slug, title, metaTitle, metaDescription, category, pillarCluster, isPillar, pillarSlug, body, publishedAt, wordCount } = req.body
+  if (!slug || !title || !body) return res.status(400).json({ error: 'slug, title, and body are required' })
+
+  const existing = await query('SELECT slug FROM blog_posts WHERE slug = ? LIMIT 1', [slug])
+  if (existing && existing.length > 0) return res.status(409).json({ error: 'Post with that slug already exists' })
+
+  await query(
+    `INSERT INTO blog_posts (slug, title, metaTitle, metaDescription, category, pillarCluster, isPillar, pillarSlug, body, publishedAt, wordCount)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [slug, title, metaTitle || title, metaDescription || '', category || '', pillarCluster || null, isPillar ? 1 : 0, pillarSlug || null, body, publishedAt || new Date().toISOString().slice(0, 10), wordCount || 0]
+  )
+
+  // Async hero generation — don't block the response
+  if (process.env.CLOUDINARY_URL || process.env.CLOUDINARY_CLOUD_NAME) {
+    generateHero(title, slug)
+      .then(url => query('UPDATE blog_posts SET heroImageUrl = ? WHERE slug = ?', [url, slug]))
+      .catch(err => console.warn(`[Hero] Failed for ${slug}:`, err.message))
+  }
+
+  res.status(201).json({ slug, heroStatus: 'generating' })
+})
+
+// Regenerate (or generate) hero image for a single post
+app.post('/api/posts/:slug/hero', async (req, res) => {
+  const { slug } = req.params
+  const rows = await query('SELECT slug, title FROM blog_posts WHERE slug = ? LIMIT 1', [slug])
+  if (!rows || rows.length === 0) return res.status(404).json({ error: 'Post not found' })
+
+  try {
+    const url = await generateHero(rows[0].title, slug)
+    await query('UPDATE blog_posts SET heroImageUrl = ? WHERE slug = ?', [url, slug])
+    res.json({ slug, heroImageUrl: url })
+  } catch (err) {
+    console.error(`[Hero] Error for ${slug}:`, err.message)
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // ── API: Contact form ──────────────────────────────────────────────────────────
