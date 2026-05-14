@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import CardGlow from '../components/CardGlow'
@@ -66,17 +67,115 @@ const qualifiers = [
 ]
 
 const marqueeItems = [
-  'FORBES',
-  'ENTREPRENEUR',
-  'FAST COMPANY',
-  'INC.',
-  'APPLE PODCASTS TOP 10',
-  'FORBES',
-  'ENTREPRENEUR',
-  'FAST COMPANY',
-  'INC.',
-  'APPLE PODCASTS TOP 10',
+  'FORBES', 'ENTREPRENEUR', 'FAST COMPANY', 'INC.', 'APPLE PODCASTS TOP 10',
+  'FORBES', 'ENTREPRENEUR', 'FAST COMPANY', 'INC.', 'APPLE PODCASTS TOP 10',
 ]
+
+// ── Hero photo panel ────────────────────────────────────────────────────────────
+// REPLACE: Add hero photo at /public/images/hero.jpg
+// The photo should be a professional portrait, ideally shot on dark or neutral
+// background, subject facing or angled toward camera, tall crop (portrait orientation).
+// Recommended: 1080×1350px or taller for full-bleed on desktop.
+function HeroPhoto() {
+  const [error, setError] = useState(false)
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        zIndex: 2,
+      }}
+    >
+      {/* REPLACE: Add hero photo at /public/images/hero.jpg */}
+      {!error ? (
+        <img
+          src="/images/hero.jpg"
+          alt="Kayvon Kay — The Revenue Architect"
+          onError={() => setError(true)}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center top',
+            display: 'block',
+          }}
+        />
+      ) : (
+        /* Placeholder shown until hero.jpg is added to /public/images/ */
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0,0,66,0.6)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 16,
+          }}
+        >
+          <div
+            style={{
+              border: '2px dashed rgba(212,241,121,0.35)',
+              padding: '28px 36px',
+              textAlign: 'center',
+            }}
+          >
+            <p
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: '3px',
+                textTransform: 'uppercase',
+                color: 'rgba(212,241,121,0.6)',
+                marginBottom: 12,
+              }}
+            >
+              Hero Photo Placeholder
+            </p>
+            <p
+              style={{
+                fontSize: 13,
+                fontWeight: 400,
+                color: 'rgba(255,255,255,0.4)',
+                lineHeight: 1.6,
+              }}
+            >
+              Drop your photo at<br />
+              <code style={{ color: '#d4f179', fontWeight: 700 }}>/public/images/hero.jpg</code>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Left-edge fade: blends photo into the dark left panel */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to right, #000042 0%, rgba(0,0,66,0.5) 30%, transparent 65%)',
+          zIndex: 3,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Bottom fade: grounds the photo into the section below */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '25%',
+          background: 'linear-gradient(to top, #000042, transparent)',
+          zIndex: 3,
+          pointerEvents: 'none',
+        }}
+      />
+    </div>
+  )
+}
 
 export default function Home() {
   return (
@@ -87,52 +186,32 @@ export default function Home() {
         canonical="https://kayvon.com/"
       />
 
-      {/* HERO */}
+      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
+      {/* Two-panel full-bleed layout: dark copy left, photo right */}
       <section
         style={{
           background: '#000042',
           minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
+          display: 'grid',
+          gridTemplateColumns: '55% 45%',
           position: 'relative',
           overflow: 'hidden',
           paddingTop: 72,
         }}
+        className="hero-section"
       >
+        {/* LEFT PANEL — Copy */}
         <div
           style={{
-            position: 'absolute',
-            right: -80,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            fontSize: 'clamp(400px, 45vw, 700px)',
-            fontWeight: 900,
-            color: 'rgba(212,241,121,0.04)',
-            lineHeight: 1,
-            pointerEvents: 'none',
-            userSelect: 'none',
-            letterSpacing: '-20px',
-          }}
-        >
-          K
-        </div>
-
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: '0 auto',
-            padding: '80px 40px',
-            width: '100%',
-            display: 'grid',
-            gridTemplateColumns: '55% 1fr',
-            gap: 64,
+            display: 'flex',
             alignItems: 'center',
+            padding: '80px 48px 80px 40px',
             position: 'relative',
-            zIndex: 2,
+            zIndex: 4,
           }}
-          className="hero-grid"
+          className="hero-left"
         >
-          <div>
+          <div style={{ maxWidth: 560, width: '100%', marginLeft: 'auto' }}>
             <span className="eyebrow">The Revenue Architect</span>
             <h1
               style={{
@@ -148,8 +227,11 @@ export default function Home() {
               <br />
               Architect.
               <br />
-              <span style={{ color: '#d4f179' }}>The Result
-              <br />Is Wealth.</span>
+              <span style={{ color: '#d4f179' }}>
+                The Result
+                <br />
+                Is Wealth.
+              </span>
             </h1>
             <p
               style={{
@@ -158,7 +240,7 @@ export default function Home() {
                 lineHeight: 1.75,
                 color: 'rgba(255,255,255,0.55)',
                 marginBottom: 40,
-                maxWidth: 460,
+                maxWidth: 440,
               }}
             >
               $375M+ in real revenue. For operators who already win
@@ -209,60 +291,108 @@ export default function Home() {
               </a>
             </div>
           </div>
+        </div>
 
+        {/* RIGHT PANEL — Photo + K geometric */}
+        {/* REPLACE: Add hero photo at /public/images/hero.jpg */}
+        <div
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            minHeight: '100%',
+          }}
+          className="hero-right"
+        >
+          {/* Lime K — sits behind the photo, peeks around edges */}
+          {/* This is the geometric brand element, not the SVG approximation */}
           <div
+            aria-hidden="true"
             style={{
-              borderLeft: '1px solid rgba(212,241,121,0.15)',
-              paddingLeft: 48,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2,
+              position: 'absolute',
+              right: '-8%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: 'clamp(320px, 45vw, 680px)',
+              fontWeight: 900,
+              fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+              color: '#d4f179',
+              opacity: 0.18,
+              lineHeight: 1,
+              pointerEvents: 'none',
+              userSelect: 'none',
+              letterSpacing: '-8px',
+              zIndex: 1,
             }}
           >
-            {stats.map(s => (
-              <CardGlow
-                key={s.value}
-                hoverBorder
-                style={{
-                  padding: '24px 28px',
-                  border: '1px solid rgba(212,241,121,0.1)',
-                  cursor: 'default',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 'clamp(28px, 3vw, 36px)',
-                    fontWeight: 900,
-                    letterSpacing: '-1.5px',
-                    color: '#d4f179',
-                    lineHeight: 1,
-                    marginBottom: 6,
-                  }}
-                >
-                  {s.value}
-                </div>
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: '2px',
-                    textTransform: 'uppercase',
-                    color: 'rgba(255,255,255,0.4)',
-                  }}
-                >
-                  {s.label}
-                </div>
-              </CardGlow>
-            ))}
+            K
           </div>
+
+          {/* REPLACE: Add hero photo at /public/images/hero.jpg */}
+          <HeroPhoto />
         </div>
       </section>
 
-      {/* TRUST BAR */}
+      {/* ── STATS STRIP ──────────────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: '#000042',
+          borderTop: '1px solid rgba(212,241,121,0.1)',
+          borderBottom: '1px solid rgba(212,241,121,0.1)',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1200,
+            margin: '0 auto',
+            padding: '0 40px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+          }}
+          className="stats-grid"
+        >
+          {stats.map((s, i) => (
+            <CardGlow
+              key={s.value}
+              hoverBorder
+              style={{
+                padding: '32px 28px',
+                borderRight: i < stats.length - 1 ? '1px solid rgba(212,241,121,0.1)' : 'none',
+                cursor: 'default',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 'clamp(24px, 2.5vw, 36px)',
+                  fontWeight: 900,
+                  letterSpacing: '-1.5px',
+                  color: '#d4f179',
+                  lineHeight: 1,
+                  marginBottom: 8,
+                }}
+              >
+                {s.value}
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '1.5px',
+                  textTransform: 'uppercase',
+                  color: 'rgba(255,255,255,0.35)',
+                  lineHeight: 1.4,
+                }}
+              >
+                {s.label}
+              </div>
+            </CardGlow>
+          ))}
+        </div>
+      </section>
+
+      {/* ── TRUST BAR ────────────────────────────────────────────────────────── */}
       <div
         style={{
-          background: 'rgba(212,241,121,0.06)',
-          borderTop: '1px solid rgba(212,241,121,0.1)',
+          background: 'rgba(212,241,121,0.04)',
           borderBottom: '1px solid rgba(212,241,121,0.1)',
           padding: '18px 0',
           overflow: 'hidden',
@@ -283,7 +413,7 @@ export default function Home() {
                 fontWeight: 700,
                 letterSpacing: '3px',
                 textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.35)',
+                color: 'rgba(255,255,255,0.3)',
                 padding: '0 40px',
               }}
             >
@@ -293,7 +423,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* PROBLEM SECTION */}
+      {/* ── PROBLEM ──────────────────────────────────────────────────────────── */}
       <section
         style={{
           background: '#000042',
@@ -362,7 +492,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* THREE LEVERAGE POINTS */}
+      {/* ── THREE LEVERAGE POINTS ────────────────────────────────────────────── */}
       <section
         id="how-it-works"
         style={{
@@ -406,11 +536,7 @@ export default function Home() {
           </h2>
 
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 2,
-            }}
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}
             className="leverage-grid"
           >
             {leveragePoints.map(p => (
@@ -423,15 +549,7 @@ export default function Home() {
                   border: '1px solid rgba(0,0,66,0.08)',
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: '3px',
-                    color: 'rgba(0,0,66,0.4)',
-                    marginBottom: 20,
-                  }}
-                >
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '3px', color: 'rgba(0,0,66,0.4)', marginBottom: 20 }}>
                   {p.num}
                 </div>
                 <h3
@@ -447,39 +565,13 @@ export default function Home() {
                 >
                   {p.title}
                 </h3>
-                <p
-                  style={{
-                    fontSize: 15,
-                    fontWeight: 400,
-                    lineHeight: 1.7,
-                    color: 'rgba(0,0,66,0.6)',
-                    marginBottom: 28,
-                  }}
-                >
+                <p style={{ fontSize: 15, fontWeight: 400, lineHeight: 1.7, color: 'rgba(0,0,66,0.6)', marginBottom: 28 }}>
                   {p.body}
                 </p>
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {p.outcomes.map(o => (
-                    <li
-                      key={o}
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: 'rgba(0,0,66,0.7)',
-                        paddingLeft: 16,
-                        position: 'relative',
-                      }}
-                    >
-                      <span
-                        style={{
-                          position: 'absolute',
-                          left: 0,
-                          color: '#000042',
-                          fontWeight: 900,
-                        }}
-                      >
-                        ·
-                      </span>
+                    <li key={o} style={{ fontSize: 13, fontWeight: 500, color: 'rgba(0,0,66,0.7)', paddingLeft: 16, position: 'relative' }}>
+                      <span style={{ position: 'absolute', left: 0, color: '#000042', fontWeight: 900 }}>·</span>
                       {o}
                     </li>
                   ))}
@@ -490,15 +582,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* OPERATORS WHO ALREADY WIN */}
-      <section
-        style={{
-          background: '#000042',
-          padding: '120px 40px',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
+      {/* ── OPERATORS WHO ALREADY WIN ─────────────────────────────────────────── */}
+      <section style={{ background: '#000042', padding: '120px 40px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <span className="eyebrow">This Is For</span>
           <h2
@@ -513,70 +598,24 @@ export default function Home() {
           >
             Operators Who Already Win.
           </h2>
-          <p
-            style={{
-              fontSize: 20,
-              fontWeight: 400,
-              color: 'rgba(255,255,255,0.4)',
-              marginBottom: 64,
-              letterSpacing: '-0.3px',
-            }}
-          >
+          <p style={{ fontSize: 20, fontWeight: 400, color: 'rgba(255,255,255,0.4)', marginBottom: 64, letterSpacing: '-0.3px' }}>
             (And know the next level won't come from trying harder.)
           </p>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: 2,
-            }}
-            className="qualifiers-grid"
-          >
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }} className="qualifiers-grid">
             {qualifiers.map(q => (
               <CardGlow
                 key={q.title}
                 hoverBorder
-                style={{
-                  border: '1px solid rgba(212,241,121,0.1)',
-                  padding: '36px 32px',
-                  cursor: 'default',
-                }}
+                style={{ border: '1px solid rgba(212,241,121,0.1)', padding: '36px 32px', cursor: 'default' }}
               >
                 <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                  <span
-                    style={{
-                      fontSize: 20,
-                      fontWeight: 900,
-                      color: '#d4f179',
-                      lineHeight: 1.3,
-                      flexShrink: 0,
-                    }}
-                  >
+                  <span style={{ fontSize: 20, fontWeight: 900, color: '#d4f179', lineHeight: 1.3, flexShrink: 0 }}>
                     {q.check}
                   </span>
                   <div>
-                    <p
-                      style={{
-                        fontSize: 18,
-                        fontWeight: 800,
-                        color: '#fff',
-                        letterSpacing: '-0.3px',
-                        marginBottom: 8,
-                      }}
-                    >
-                      {q.title}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 400,
-                        color: 'rgba(255,255,255,0.5)',
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {q.body}
-                    </p>
+                    <p style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px', marginBottom: 8 }}>{q.title}</p>
+                    <p style={{ fontSize: 15, fontWeight: 400, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>{q.body}</p>
                   </div>
                 </div>
               </CardGlow>
@@ -585,26 +624,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SOCIAL PROOF */}
-      <section
-        style={{
-          background: '#000042',
-          borderTop: '1px solid rgba(212,241,121,0.1)',
-          padding: '100px 40px',
-        }}
-      >
+      {/* ── SOCIAL PROOF ─────────────────────────────────────────────────────── */}
+      <section style={{ background: '#000042', borderTop: '1px solid rgba(212,241,121,0.1)', padding: '100px 40px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <div
-            style={{
-              fontSize: 48,
-              fontWeight: 900,
-              color: 'rgba(212,241,121,0.15)',
-              lineHeight: 1,
-              marginBottom: 32,
-            }}
-          >
-            "
-          </div>
+          <div style={{ fontSize: 48, fontWeight: 900, color: 'rgba(212,241,121,0.15)', lineHeight: 1, marginBottom: 32 }}>"</div>
           <blockquote
             style={{
               fontSize: 'clamp(20px, 2.5vw, 28px)',
@@ -619,28 +642,14 @@ export default function Home() {
             was the exact amplifier I needed — a rare and perfect blend of
             sales and operational excellence.
           </blockquote>
-          <p
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: '2px',
-              textTransform: 'uppercase',
-              color: '#d4f179',
-            }}
-          >
+          <p style={{ fontSize: 13, fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#d4f179' }}>
             — Mike Dillard, Mike Dillard Marketing
           </p>
         </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section
-        style={{
-          background: '#d4f179',
-          padding: '100px 40px',
-          textAlign: 'center',
-        }}
-      >
+      {/* ── FINAL CTA ────────────────────────────────────────────────────────── */}
+      <section style={{ background: '#d4f179', padding: '100px 40px', textAlign: 'center' }}>
         <div style={{ maxWidth: 680, margin: '0 auto' }}>
           <h2
             style={{
@@ -654,15 +663,7 @@ export default function Home() {
           >
             Ready to Architect Your Wealth?
           </h2>
-          <p
-            style={{
-              fontSize: 18,
-              fontWeight: 400,
-              lineHeight: 1.75,
-              color: 'rgba(0,0,66,0.6)',
-              marginBottom: 40,
-            }}
-          >
+          <p style={{ fontSize: 18, fontWeight: 400, lineHeight: 1.75, color: 'rgba(0,0,66,0.6)', marginBottom: 40 }}>
             This work is designed for operators who are already winning
             but know their current structure will not create real wealth.
           </p>
@@ -683,14 +684,7 @@ export default function Home() {
           >
             Book a Private Analysis →
           </Link>
-          <p
-            style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: 'rgba(0,0,66,0.45)',
-              letterSpacing: '0.5px',
-            }}
-          >
+          <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(0,0,66,0.45)', letterSpacing: '0.5px' }}>
             This is not consulting. It is wealth architecture.
           </p>
         </div>
@@ -698,9 +692,16 @@ export default function Home() {
 
       <style>{`
         @media (max-width: 900px) {
-          .hero-grid { grid-template-columns: 1fr !important; }
+          .hero-section { grid-template-columns: 1fr !important; }
+          .hero-right { min-height: 55vw !important; }
+          .hero-left { padding: 48px 24px 40px !important; }
+          .stats-grid { grid-template-columns: 1fr 1fr !important; }
           .leverage-grid { grid-template-columns: 1fr !important; }
           .qualifiers-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 540px) {
+          .stats-grid { grid-template-columns: 1fr 1fr !important; }
+          .hero-right { min-height: 70vw !important; }
         }
       `}</style>
     </>
